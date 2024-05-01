@@ -13,11 +13,8 @@ router.get('/alldata', async (req, res) => {
 // Create new data
 router.post('/newdata', async (req, res) => {
   const newData = req.body;
-
-  console.log(newData);
   try {
     const data = await prisma.tbl_data.create({ data: newData });
-    console.log(data);
     return res.json(data);
   } catch (error) {
     console.error(error.stack);
@@ -26,7 +23,7 @@ router.post('/newdata', async (req, res) => {
 });
 
 // Delete data by id
-router.delete('/delete/data/:id', async (req, res) => {
+router.post('/delete/data/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     await prisma.tbl_data.delete({
@@ -56,8 +53,18 @@ router.put("/update/data/:id", async (req, res) => {
 });
 
 // Send email by id (you need to implement this using Prisma)
-router.post("/sendmail/:id", async (req, res) => {
-  return res.status(501).json({ message: 'Not implemented' });
+router.post("/trunc", async (req, res) => {
+  try {
+    await prisma.$executeRaw`TRUNCATE TABLE "tbl_data" RESTART IDENTITY;`;
+    console.log(`Table "tbl_data" truncated successfully.`);
+    res.status(200).send('tbl_data table truncated successfully.');
+  } catch (error) {
+    console.error(`Error truncating table "tbl_data":`, error);
+    res.status(500).send('Error truncating tbl_data table.');
+  } finally {
+    await prisma.$disconnect();
+  }
 });
+
 
 module.exports = router;
